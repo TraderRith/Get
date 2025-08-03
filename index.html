@@ -407,5 +407,24 @@
     </div>
     <div class="footer-copy">2025 © GETCHAIN. All rights reserved.</div>
   </footer>
+
+  
+  <script>
+  const connectBtn = document.querySelector('.connect-wallet');
+  connectBtn.addEventListener('click', async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        connectBtn.textContent = "Wallet Connected";
+      } catch (err) {
+        console.error('Connection rejected:', err);
+      }
+    } else {
+      alert("MetaMask not detected");
+    }
+  });
+  </script>
+
+  
 </body>
 </html>
