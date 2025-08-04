@@ -96,7 +96,7 @@
       margin-bottom: 1.5rem;
       word-break: break-word;
     }
-    .eligibility-msg {
+    .eligibility-msg, .success-msg {
       background: rgba(255 255 255 / 0.1);
       border-radius: 12px;
       padding: 1rem 1.5rem;
@@ -104,6 +104,22 @@
       font-size: 1rem;
       box-shadow: 0 0 12px rgba(255, 170, 51, 0.25);
       margin-bottom: 1rem;
+    }
+
+    .success-msg {
+      background: rgba(0, 255, 150, 0.12);
+      border: 1px solid rgba(0, 255, 150, 0.3);
+      box-shadow: 0 0 10px rgba(0, 255, 150, 0.2);
+      color: #afffda;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
@@ -116,8 +132,13 @@
     <button class="connect-wallet-btn" id="connectWalletBtn">Connect Wallet</button>
     <div id="walletAddress" class="wallet-address" style="display:none;"></div>
     <button class="claim-btn" id="claimBtn" disabled>Claim Now</button>
+
     <div id="eligibilityMessage" class="eligibility-msg" style="display:none;">
       ✅ You are eligible for <strong>10,000 $GET</strong>
+    </div>
+
+    <div id="successMessage" class="success-msg" style="display:none;">
+      🎉 You have successfully claimed <strong>10,000 $GET</strong>!
     </div>
   </div>
 
@@ -127,12 +148,13 @@
     const walletAddressDiv = document.getElementById('walletAddress');
     const claimBtn = document.getElementById('claimBtn');
     const eligibilityMsg = document.getElementById('eligibilityMessage');
+    const successMsg = document.getElementById('successMessage');
 
     let provider, signer;
 
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // BASE USDC
-    const GET_TOKEN_ADDRESS = "0x8202602770933045BA513a7C6255E34D9B966405"; // ✅ Updated GET Token
-    const CLAIM_CONTRACT_ADDRESS = "0x7Bb5c61149a3E66675AFBCA166436CddECF86581"; // ✅ Updated getting.sol
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+    const GET_TOKEN_ADDRESS = "0x8202602770933045BA513a7C6255E34D9B966405";
+    const CLAIM_CONTRACT_ADDRESS = "0x7Bb5c61149a3E66675AFBCA166436CddECF86581";
 
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
@@ -185,8 +207,14 @@
         const claimContract = new ethers.Contract(CLAIM_CONTRACT_ADDRESS, CLAIM_ABI, signer);
         const claimTx = await claimContract.claim();
         await claimTx.wait();
+
+        successMsg.style.display = 'block';
+        successMsg.classList.add('fade-in');
+        claimBtn.disabled = true;
+        claimBtn.textContent = "Claimed";
       } catch (err) {
         console.error("Claim failed:", err);
+        alert("Transaction failed. Please try again.");
       }
     });
   </script>
