@@ -18,7 +18,7 @@
       padding: 2rem;
     }
     .claim-wrapper {
-      background: rgba(255 255 255 / 0.05);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 16px;
       box-shadow: 0 0 30px rgba(255, 170, 51, 0.2);
       max-width: 420px;
@@ -39,7 +39,6 @@
       color: #ffaa33;
       margin-bottom: 0.5rem;
       letter-spacing: 3px;
-      user-select: none;
     }
     .title {
       font-weight: 600;
@@ -63,7 +62,6 @@
       transition: background 0.3s ease;
       box-shadow: 0 0 15px rgba(255,170,51,0.6);
       width: 100%;
-      user-select: none;
       font-size: 1rem;
       margin-bottom: 1.5rem;
     }
@@ -79,7 +77,6 @@
     }
     .claim-btn {
       background: linear-gradient(90deg, #ffcc70, #ffaa33);
-      font-size: 1.1rem;
     }
     .claim-btn:hover {
       background: linear-gradient(90deg, #ffdca1, #ffc76b);
@@ -97,13 +94,12 @@
       word-break: break-word;
     }
     .eligibility-msg {
-      background: rgba(255 255 255 / 0.1);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 1rem 1.5rem;
       font-size: 1rem;
       box-shadow: 0 0 12px rgba(255, 170, 51, 0.25);
       margin-bottom: 1rem;
-      transition: all 0.3s ease;
     }
     .success {
       background-color: rgba(0, 255, 150, 0.1);
@@ -121,22 +117,20 @@
   <div class="claim-wrapper">
     <div class="logo">GETCHAIN</div>
     <div class="title">$GET Token Airdrop</div>
-    <div class="subtitle">Connect your wallet to claim your $GET tokens.</div>
+    <div class="subtitle">Connect your wallet to check eligibility and claim your tokens.</div>
 
     <button class="connect-wallet-btn" id="connectWalletBtn">Connect Wallet</button>
     <div id="walletAddress" class="wallet-address" style="display:none;"></div>
-    <button class="claim-btn" id="claimBtn" disabled>Claim Now</button>
+    <button class="claim-btn" id="claimBtn" disabled>Claim $GET</button>
 
     <div id="eligibilityMessage" class="eligibility-msg" style="display:none;">
       ✅ You are eligible for <strong>10,000 $GET</strong>
     </div>
-
     <div id="successMessage" class="eligibility-msg success" style="display:none;">
-      🎉 You’ve successfully claimed your <strong>10,000 $GET</strong>!
+      🎉 Claimed successfully! Check your wallet.
     </div>
-
     <div id="errorMessage" class="eligibility-msg error" style="display:none;">
-      ❌ Claim unsuccessful. Please ensure you're on the correct network and try again.
+      ❌ Something went wrong. Please try again.
     </div>
   </div>
 
@@ -149,11 +143,9 @@
     const successMsg = document.getElementById('successMessage');
     const errorMsg = document.getElementById('errorMessage');
 
-    let provider, signer;
-
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // BASE USDC
-    const GET_TOKEN_ADDRESS = "0x8202602770933045BA513a7C6255E34D9B966405"; // ✅ Updated GET Token
-    const CLAIM_CONTRACT_ADDRESS = "0x7Bb5c61149a3E66675AFBCA166436CddECF86581"; // ✅ Updated getting.sol
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
+    const GET_CONTRACT = "0x8202602770933045BA513a7C6255E34D9B966405"; // $GET token
+    const CLAIM_CONTRACT = "0x7Bb5c61149a3E66675AFBCA166436CddECF86581"; // Claim contract
 
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
@@ -162,58 +154,56 @@
       "function claim() external"
     ];
 
+    let provider, signer;
+
     connectWalletBtn.addEventListener('click', async () => {
-      if (!window.ethereum) {
-        alert("MetaMask not detected. Please install it.");
-        return;
-      }
-
       try {
-        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        const address = await signer.getAddress();
-
-        const { chainId } = await provider.getNetwork();
-        if (chainId !== 8453) {
-          alert("Please switch to Base Mainnet (Chain ID: 8453).");
+        if (!window.ethereum) {
+          alert("Install MetaMask!");
           return;
         }
 
-        walletAddressDiv.textContent = address;
-        walletAddressDiv.style.display = 'block';
-        connectWalletBtn.textContent = "Wallet Connected";
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        const { chainId } = await provider.getNetwork();
+        if (chainId !== 8453) {
+          alert("Please switch to Base Mainnet (Chain ID 8453).");
+          return;
+        }
+
+        walletAddressDiv.textContent = userAddress;
+        walletAddressDiv.style.display = "block";
+        connectWalletBtn.textContent = "Connected";
         connectWalletBtn.disabled = true;
 
-        eligibilityMsg.style.display = 'block';
+        eligibilityMsg.style.display = "block";
         claimBtn.disabled = false;
-      } catch (err) {
-        alert("Connection failed.");
+      } catch (e) {
+        console.error("Wallet connect failed:", e);
       }
     });
 
     claimBtn.addEventListener('click', async () => {
-      if (!signer) {
-        alert("Connect your wallet first.");
-        return;
-      }
+      if (!signer) return alert("Connect wallet first.");
 
-      // Hide previous messages
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
 
       try {
         const usdc = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
-        const approvalTx = await usdc.approve(CLAIM_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
+        const approvalTx = await usdc.approve(CLAIM_CONTRACT, ethers.constants.MaxUint256);
         await approvalTx.wait();
 
-        const claimContract = new ethers.Contract(CLAIM_CONTRACT_ADDRESS, CLAIM_ABI, signer);
-        const claimTx = await claimContract.claim();
-        await claimTx.wait();
+        const claim = new ethers.Contract(CLAIM_CONTRACT, CLAIM_ABI, signer);
+        const tx = await claim.claim();
+        await tx.wait();
 
         successMsg.style.display = "block";
-      } catch (err) {
-        console.error("Claim failed:", err);
+      } catch (e) {
+        console.error(e);
         errorMsg.style.display = "block";
       }
     });
