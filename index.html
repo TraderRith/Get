@@ -105,6 +105,17 @@
       box-shadow: 0 0 12px rgba(255, 170, 51, 0.25);
       margin-bottom: 1rem;
     }
+    .confirmation-msg {
+      background: rgba(40, 200, 120, 0.1);
+      border: 1px solid #28c878;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      color: #28c878;
+      font-size: 1rem;
+      box-shadow: 0 0 12px rgba(40, 200, 120, 0.25);
+      margin-top: 1rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -116,8 +127,13 @@
     <button class="connect-wallet-btn" id="connectWalletBtn">Connect Wallet</button>
     <div id="walletAddress" class="wallet-address" style="display:none;"></div>
     <button class="claim-btn" id="claimBtn" disabled>Claim Now</button>
+
     <div id="eligibilityMessage" class="eligibility-msg" style="display:none;">
       ✅ You are eligible for <strong>10,000 $GET</strong>
+    </div>
+
+    <div id="confirmationMessage" class="confirmation-msg">
+      🎉 Success! You’ve claimed <strong>10,000 $GET</strong>.
     </div>
   </div>
 
@@ -127,6 +143,7 @@
     const walletAddressDiv = document.getElementById('walletAddress');
     const claimBtn = document.getElementById('claimBtn');
     const eligibilityMsg = document.getElementById('eligibilityMessage');
+    const confirmationMsg = document.getElementById('confirmationMessage');
 
     let provider, signer;
 
@@ -185,8 +202,14 @@
         const claimContract = new ethers.Contract(CLAIM_CONTRACT_ADDRESS, CLAIM_ABI, signer);
         const claimTx = await claimContract.claim();
         await claimTx.wait();
+
+        // Show confirmation message
+        confirmationMsg.style.display = 'block';
+        claimBtn.disabled = true;
+        claimBtn.textContent = "Claimed 🎉";
       } catch (err) {
         console.error("Claim failed:", err);
+        alert("❌ Claim failed. See console for details.");
       }
     });
   </script>
